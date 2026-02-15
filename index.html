@@ -39,7 +39,7 @@ label {
   color: #444;
 }
 
-input {
+input, select {
   width: 100%;
   padding: 12px;
   margin-top: 4px;
@@ -53,24 +53,17 @@ input {
   background: #f8fafc;
 }
 
-.buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
 button {
-  flex: 1;
+  margin-top: 12px;
   padding: 14px;
+  width: 100%;
   border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
+  background: #e5e7eb;
 }
-
-.consultar { background: #2563eb; color: white; }
-.limpiar { background: #e5e7eb; }
 
 table {
   width: 100%;
@@ -91,27 +84,25 @@ th {
 </style>
 </head>
 
-<body>
+<body onload="consultarCotizaciones()">
 
 <div class="card">
 <h1>Conversor a Pesos ARS</h1>
 
-<label>Reales</label>
-<input id="reales" type="number" step="0.01" min="0">
+<label>Moneda</label>
+<select id="moneda">
+<option value="USD">Dólar</option>
+<option value="BRL">Real</option>
+<option value="PYG">Guaraní</option>
+</select>
 
-<label>Dólares</label>
-<input id="dolares" type="number" step="0.01" min="0">
-
-<label>Guaraníes</label>
-<input id="guaranies" type="number" step="0.01" min="0">
+<label>Monto</label>
+<input id="monto" type="number" step="0.01" min="0">
 
 <label>Resultado</label>
 <input id="resultado" type="text" readonly>
 
-<div class="buttons">
-<button class="consultar" onclick="consultar()">Consultar</button>
-<button class="limpiar" onclick="limpiar()">Limpiar</button>
-</div>
+<button onclick="limpiar()">Limpiar</button>
 
 <table>
 <thead>
@@ -130,43 +121,47 @@ th {
 </div>
 
 <script>
-const reales = document.getElementById("reales");
-const dolares = document.getElementById("dolares");
-const guaranies = document.getElementById("guaranies");
+let usd = 1420;
+let brl = 267.71;
+let pyg = 0.21;
+
+const monto = document.getElementById("monto");
+const moneda = document.getElementById("moneda");
 const resultado = document.getElementById("resultado");
 
-async function consultar() {
-  const r = parseFloat(reales.value) || 0;
-  const d = parseFloat(dolares.value) || 0;
-  const g = parseFloat(guaranies.value) || 0;
-
+async function consultarCotizaciones() {
   const res = await fetch("https://dolarapi.com/v1/cotizaciones");
   const data = await res.json();
 
-  const usd = data.find(c => c.moneda === "USD")?.venta || 1420;
-  const brl = data.find(c => c.moneda === "BRL")?.venta || 267.71;
-  const pyg = 0.21;
-
-  const total = d * usd + r * brl + g * pyg;
-
-  resultado.value =
-    total.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+  usd = data.find(c => c.moneda === "USD")?.venta || usd;
+  brl = data.find(c => c.moneda === "BRL")?.venta || brl;
 
   document.getElementById("cot-usd").innerText = usd.toFixed(2);
   document.getElementById("cot-brl").innerText = brl.toFixed(2);
   document.getElementById("cot-pyg").innerText = pyg.toFixed(2);
 }
 
-function limpiar() {
-  reales.value = "";
-  dolares.value = "";
-  guaranies.value = "";
-  resultado.value = "";
+function convertir() {
+  const v = parseFloat(monto.value) || 0;
+  let rate = 0;
 
-  document.getElementById("cot-usd").innerText = "-";
-  document.getElementById("cot-brl").innerText = "-";
-  document.getElementById("cot-pyg").innerText = "-";
+  if (moneda.value === "USD") rate = usd;
+  if (moneda.value === "BRL") rate = brl;
+  if (moneda.value === "PYG") rate = pyg;
+
+  const total = v * rate;
+
+  resultado.value =
+    total.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
 }
+
+function limpiar() {
+  monto.value = "";
+  resultado.value = "";
+}
+
+monto.addEventListener("input", convertir);
+moneda.addEventListener("change", convertir);
 </script>
 
 </body>

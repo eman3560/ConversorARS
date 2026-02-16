@@ -133,11 +133,14 @@ const moneda = document.getElementById("moneda");
 const resultado = document.getElementById("resultado");
 
 async function consultarCotizaciones() {
-  const res = await fetch("https://dolarapi.com/v1/cotizaciones");
-  const data = await res.json();
+  const res = await fetch("https://api.bcra.gob.ar/estadisticascambiarias/v1.0/Cotizaciones/");
+  const json = await res.json();
 
-  usd = data.find(c => c.moneda === "USD")?.venta || usd;
-  brl = data.find(c => c.moneda === "BRL")?.venta || brl;
+  const data = json.results.detalle;
+
+  usd = data.find(c => c.codigoMoneda === "USD")?.tipoCotizacion || usd;
+  brl = data.find(c => c.codigoMoneda === "BRL")?.tipoCotizacion || brl;
+  pyg = data.find(c => c.codigoMoneda === "PYG")?.tipoCotizacion || pyg;
 
   document.getElementById("cot-usd").innerText = usd.toFixed(2);
   document.getElementById("cot-brl").innerText = brl.toFixed(2);

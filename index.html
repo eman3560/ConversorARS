@@ -162,6 +162,11 @@ function limpiar() {
   resultado.value = "";
 }
 
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+
+
 monto.addEventListener("input", convertir);
 moneda.addEventListener("change", convertir);
 </script>
